@@ -11,7 +11,7 @@ public class Database {
 	private final Statement statement;
 
 	private Database() {
-		String databaseFile = "localdatabase2.db";
+		String databaseFile = "localdatabase.db";
 		try {
 			Connection connection = DriverManager.getConnection("jdbc:sqlite:" + databaseFile);
 			this.statement = connection.createStatement();

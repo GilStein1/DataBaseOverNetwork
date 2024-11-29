@@ -20,12 +20,12 @@ public class ClientMain {
 
 		AtomicInteger ID = new AtomicInteger();
 
-//		table.insertObject(new Test(70, 28), (id) -> {
-//			System.out.println(id);
-//			ID.set(id);
-//			table.getObject(id, value -> {
-//			});
-//		});
+		table.insertObject(new Test(10, 30), (id) -> {
+			System.out.println(id);
+			ID.set(id);
+			table.getObject(id, value -> {
+			});
+		});
 
 		Thread.sleep(1000);
 
