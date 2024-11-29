@@ -1,6 +1,8 @@
 package database;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class Database {
@@ -111,6 +113,16 @@ public class Database {
 		String selectCommand = "SELECT objectValue FROM tableOfAllValues WHERE id = " + key + " AND tableName = '" + table + "' AND user_id = " + user.id();
 		ResultSet rs = statement.executeQuery(selectCommand);
 		return rs.getString("objectValue");
+	}
+
+	public List<String> getAllValues(User user, String table) throws SQLException {
+		String selectCommand = "SELECT objectValue FROM tableOfAllValues WHERE tableName = '" + table + "' AND user_id = " + user.id();
+		ResultSet rs = statement.executeQuery(selectCommand);
+		List<String> values = new ArrayList<>();
+		while (rs.next()) {
+			values.add(rs.getString("objectValue"));
+		}
+		return values;
 	}
 
 	public boolean isKeyInTable(int key) throws SQLException {

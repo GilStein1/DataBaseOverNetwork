@@ -16,21 +16,24 @@ public class ClientMain {
 
 		System.out.println("login success: " + success);
 
-		GilTable table = gilBase.getTableReference("gilTable");
+		GilTable<Test> table = gilBase.getTableReference("gilTable", Test.class);
 
 		AtomicInteger ID = new AtomicInteger();
 
-		table.insertObject(new Test(70, 28), (id) -> {
-			System.out.println(id);
-			ID.set(id);
-			table.getObject(id, Test.class, value -> {
-			});
-		});
+//		table.insertObject(new Test(70, 28), (id) -> {
+//			System.out.println(id);
+//			ID.set(id);
+//			table.getObject(id, value -> {
+//			});
+//		});
 
 		Thread.sleep(1000);
 
-		table.getObject(ID.get(), Test.class, value -> {
-			System.out.println(((value)).getA());
+		table.getAllObjectsInTable(list -> {
+			for(Test s : list) {
+				System.out.println(s.getA() + ", " + s.getB());
+			}
+			System.out.println(list.size());
 		});
 
 	}

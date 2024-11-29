@@ -21,11 +21,11 @@ public class GilBase {
 
 	}
 
-	public GilTable getTableReference(String tableName) {
+	public <T> GilTable<T> getTableReference(String tableName, Class<T> classOfType) {
 		if(user == null) {
 			throw new NullPointerException("did not log user. all actions must be performed after connecting with user");
 		}
-		return new GilTable(user, tableName, in, out);
+		return new GilTable<>(user, tableName, in, out, classOfType);
 	}
 
 	public boolean connectUser(User user, String ip, int port) {

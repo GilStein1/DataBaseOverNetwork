@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.SQLException;
+import java.util.List;
 
 public class DatabaseManager {
 
@@ -101,6 +102,21 @@ public class DatabaseManager {
 			}
 			else {
 				out.write("notAValidKey\n".getBytes());
+			}
+		}
+		else if(receivedMessage.startsWith("getAllObjects")) {
+			String[] parts = receivedMessage.split(" ");
+			List<String> values = Database.getInstance().getAllValues(connectedUser, parts[1]);
+			if(values.isEmpty()) {
+				out.write("error\n".getBytes());
+			}
+			else {
+				StringBuilder allValues = new StringBuilder();
+				for(String value : values) {
+					allValues.append("*").append(value);
+				}
+				String allValuesString = allValues.append("\n").substring(1);
+				out.write(allValuesString.getBytes());
 			}
 		}
 		else if(receivedMessage.startsWith("insertObject")) {

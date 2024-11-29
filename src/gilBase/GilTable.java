@@ -8,23 +8,29 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
-public class GilTable {
+public class GilTable <T> {
 
 	private final String tableName;
 	private final User user;
 	private final BufferedReader in;
 	private final DataOutputStream out;
+	private final Class<T> classOfObject;
 
-	GilTable(User user, String tableName, BufferedReader in, DataOutputStream out) {
+	GilTable(User user, String tableName, BufferedReader in, DataOutputStream out, Class<T> classOfObject) {
 		this.tableName = tableName;
 		this.user = user;
 		this.in = in;
 		this.out = out;
+		this.classOfObject = classOfObject;
 	}
 
-	public <T> void insertObject(T object, Consumer<Integer> onInsert) {
+	public void insertObject(T object, Consumer<Integer> onInsert) {
 		String serializedObject = Serializer.serialize(object, object.getClass());
 		Thread waitForValue = new Thread(() -> {
 			String getMessage = "insertObject " + tableName + " " + serializedObject + "\n";
@@ -39,7 +45,33 @@ public class GilTable {
 		waitForValue.start();
 	}
 
-	public <T> void getObject(int id, Class<T> classOfObject, Consumer<T> atValueReturned) {
+	public void getAllObjectsInTable(Consumer<List<T>> atValueReturned) {
+		Thread waitForValue = new Thread(() -> {
+			String getMessage = "getAllObjects " + tableName + "\n";
+			try {
+				out.write(getMessage.getBytes());
+				String receivedLine = in.readLine();
+				if(!receivedLine.startsWith("error")) {
+					atValueReturned.accept(
+						deserializeList(receivedLine.split("\\*"))
+					);
+				}
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		});
+		waitForValue.start();
+	}
+
+	private List<T> deserializeList(String[] arr) {
+		List<T> list = new ArrayList<>();
+		for(String s : arr) {
+			list.add(Serializer.deserialize(s, classOfObject));
+		}
+		return list;
+	}
+
+	public void getObject(int id, Consumer<T> atValueReturned) {
 		Thread waitForValue = new Thread(() -> {
 			String getMessage = "getObject " + tableName + " " + id + "\n";
 			try {
