@@ -58,9 +58,7 @@ public class DatabaseManager {
 			while (!clientSocket.isClosed() && isConnected) {
 				try {
 					handleInputFromClient(in, out, connectedUser);
-				} catch (IOException | SQLException e) {
-					throw new RuntimeException(e);
-				}
+				} catch (IOException | SQLException ignored) {}
 			}
 			try {
 				clientSocket.close();
@@ -70,7 +68,7 @@ public class DatabaseManager {
 	}
 
 	private User authenticateNewUser(BufferedReader in, DataOutputStream out) throws IOException, SQLException {
-		String startMessage = "start connection";
+		String startMessage = "start connection\n";
 		out.write(startMessage.getBytes());
 		String receivedMessage = in.readLine();
 		User user = Serializer.deserialize(receivedMessage, User.class);
@@ -83,12 +81,12 @@ public class DatabaseManager {
 				user = listedUser;
 			}
 			else {
-				String wrongPasswordMessage = "incorrect password";
+				String wrongPasswordMessage = "incorrect password\n";
 				out.write(wrongPasswordMessage.getBytes());
 				return null;
 			}
 		}
-		String connectionEstablishedMessage = "connection established";
+		String connectionEstablishedMessage = "connection established\n";
 		out.write(connectionEstablishedMessage.getBytes());
 		return user;
 	}
@@ -99,23 +97,23 @@ public class DatabaseManager {
 			String[] parts = receivedMessage.split(" ");
 			if(Database.getInstance().isKeyInTable(Integer.parseInt(parts[2]))) {
 				String object = Database.getInstance().getValue(connectedUser, parts[1], Integer.parseInt(parts[2]));
-				out.write(object.getBytes());
+				out.write((object + "\n").getBytes());
 			}
 			else {
-				out.write("notAValidKey".getBytes());
+				out.write("notAValidKey\n".getBytes());
 			}
 		}
 		else if(receivedMessage.startsWith("insertObject")) {
 			String[] parts = receivedMessage.split(" ");
 			int id = Database.getInstance().insertValue(connectedUser, parts[1], parts[2]);
-			out.write(Integer.toString(id).getBytes());
+			out.write((id + "\n").getBytes());
 		}
 		else if(receivedMessage.startsWith("updateObject")) {
 			String[] parts = receivedMessage.split(" ");
 			int id = Integer.parseInt(parts[1]);
 			String object = parts[2];
 			Database.getInstance().updateValue(id, object);
-			out.write("success".getBytes());
+			out.write("success\n".getBytes());
 		}
 	}
 

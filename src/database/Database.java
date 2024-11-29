@@ -9,11 +9,11 @@ public class Database {
 	private final Statement statement;
 
 	private Database() {
-		String databaseFile = "localdatabase.db";
+		String databaseFile = "localdatabase2.db";
 		try {
 			Connection connection = DriverManager.getConnection("jdbc:sqlite:" + databaseFile);
-			createUserTableIfNotExists();
 			this.statement = connection.createStatement();
+			createUserTableIfNotExists();
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
@@ -32,7 +32,7 @@ public class Database {
 				id INTEGER PRIMARY KEY,
 				objectValue TEXT NOT NULL,
 				tableName TEXT NOT NULL,
-				user_id INTEGER
+				user_id INTEGER,
 				FOREIGN KEY (user_id) REFERENCES tableOfAllUsers(id)
 			)
 			""";
@@ -48,16 +48,17 @@ public class Database {
 	}
 
 	public User getUser(String userName) throws SQLException {
-		String selectCommand = "SELECT id FROM tableOfAllUsers WHERE userName = " + userName;
+		String selectCommand = "SELECT id FROM tableOfAllUsers WHERE userName = '" + userName + "'";
 		ResultSet rs = statement.executeQuery(selectCommand);
 		int id = rs.getInt("id");
-		selectCommand = "SELECT password FROM tableOfAllUsers WHERE userName = " + userName;
+		selectCommand = "SELECT password FROM tableOfAllUsers WHERE userName = '" + userName + "'";
+		rs = statement.executeQuery(selectCommand);
 		String password = rs.getString("password");
 		return new User(userName, password, id);
 	}
 
 	public boolean doesUserExist(User user) throws SQLException {
-		String selectCommand = "SELECT userName FROM tableOfAllUsers WHERE userName = " + user.userName();
+		String selectCommand = "SELECT userName FROM tableOfAllUsers WHERE userName = '" + user.userName() + "'";
 		ResultSet rs = statement.executeQuery(selectCommand);
 		return rs.next();
 	}
@@ -107,9 +108,9 @@ public class Database {
 	}
 
 	public String getValue(User user, String table, int key) throws SQLException {
-		String selectCommand = "SELECT value FROM tableOfAllValues WHERE id = " + key + " AND tableName = '" + table + "' AND user_id = " + user.id();
+		String selectCommand = "SELECT objectValue FROM tableOfAllValues WHERE id = " + key + " AND tableName = '" + table + "' AND user_id = " + user.id();
 		ResultSet rs = statement.executeQuery(selectCommand);
-		return rs.getString("value");
+		return rs.getString("objectValue");
 	}
 
 	public boolean isKeyInTable(int key) throws SQLException {
