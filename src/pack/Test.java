@@ -9,7 +9,8 @@ public class Test {
 		this.b = b;
 	}
 
-	public Test() {}
+	public Test() {
+	}
 
 	public int getA() {
 		return a;

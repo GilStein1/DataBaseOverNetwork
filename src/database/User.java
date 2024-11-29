@@ -24,9 +24,11 @@ public class User {
 	public String userName() {
 		return userName;
 	}
+
 	public String password() {
 		return password;
 	}
+
 	public int id() {
 		return id;
 	}

@@ -49,7 +49,7 @@ public class DatabaseManager {
 				in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 				out = new DataOutputStream(clientSocket.getOutputStream());
 				connectedUser = authenticateNewUser(in, out);
-				if(connectedUser == null) {
+				if (connectedUser == null) {
 					clientSocket.close();
 				}
 			} catch (IOException | SQLException e) {
@@ -59,11 +59,13 @@ public class DatabaseManager {
 			while (!clientSocket.isClosed() && isConnected) {
 				try {
 					handleInputFromClient(in, out, connectedUser);
-				} catch (IOException | SQLException ignored) {}
+				} catch (IOException | SQLException ignored) {
+				}
 			}
 			try {
 				clientSocket.close();
-			} catch (IOException ignored) {}
+			} catch (IOException ignored) {
+			}
 		});
 		clientThread.start();
 	}
@@ -73,15 +75,13 @@ public class DatabaseManager {
 		out.write(startMessage.getBytes());
 		String receivedMessage = in.readLine();
 		User user = Serializer.deserialize(receivedMessage, User.class);
-		if(!Database.getInstance().doesUserExist(user)) {
+		if (!Database.getInstance().doesUserExist(user)) {
 			user = Database.getInstance().createNewUser(user);
-		}
-		else {
+		} else {
 			User listedUser = Database.getInstance().getUser(user.userName());
-			if(listedUser.password().equals(user.password())) {
+			if (listedUser.password().equals(user.password())) {
 				user = listedUser;
-			}
-			else {
+			} else {
 				String wrongPasswordMessage = "incorrect password\n";
 				out.write(wrongPasswordMessage.getBytes());
 				return null;
@@ -94,37 +94,32 @@ public class DatabaseManager {
 
 	private void handleInputFromClient(BufferedReader in, DataOutputStream out, User connectedUser) throws IOException, SQLException {
 		String receivedMessage = in.readLine();
-		if(receivedMessage.startsWith("getObject")) {
+		if (receivedMessage.startsWith("getObject")) {
 			String[] parts = receivedMessage.split(" ");
-			if(Database.getInstance().isKeyInTable(Integer.parseInt(parts[2]))) {
+			if (Database.getInstance().isKeyInTable(Integer.parseInt(parts[2]))) {
 				String object = Database.getInstance().getValue(connectedUser, parts[1], Integer.parseInt(parts[2]));
 				out.write((object + "\n").getBytes());
-			}
-			else {
+			} else {
 				out.write("notAValidKey\n".getBytes());
 			}
-		}
-		else if(receivedMessage.startsWith("getAllObjects")) {
+		} else if (receivedMessage.startsWith("getAllObjects")) {
 			String[] parts = receivedMessage.split(" ");
 			List<String> values = Database.getInstance().getAllValues(connectedUser, parts[1]);
-			if(values.isEmpty()) {
+			if (values.isEmpty()) {
 				out.write("error\n".getBytes());
-			}
-			else {
+			} else {
 				StringBuilder allValues = new StringBuilder();
-				for(String value : values) {
+				for (String value : values) {
 					allValues.append("*").append(value);
 				}
 				String allValuesString = allValues.append("\n").substring(1);
 				out.write(allValuesString.getBytes());
 			}
-		}
-		else if(receivedMessage.startsWith("insertObject")) {
+		} else if (receivedMessage.startsWith("insertObject")) {
 			String[] parts = receivedMessage.split(" ");
 			int id = Database.getInstance().insertValue(connectedUser, parts[1], parts[2]);
 			out.write((id + "\n").getBytes());
-		}
-		else if(receivedMessage.startsWith("updateObject")) {
+		} else if (receivedMessage.startsWith("updateObject")) {
 			String[] parts = receivedMessage.split(" ");
 			int id = Integer.parseInt(parts[1]);
 			String object = parts[2];

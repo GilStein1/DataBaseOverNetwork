@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-public class GilTable <T> {
+public class GilTable<T> {
 
 	private final String tableName;
 	private final User user;
@@ -51,7 +51,7 @@ public class GilTable <T> {
 			try {
 				out.write(getMessage.getBytes());
 				String receivedLine = in.readLine();
-				if(!receivedLine.startsWith("error")) {
+				if (!receivedLine.startsWith("error")) {
 					atValueReturned.accept(
 						deserializeList(receivedLine.split("\\*"))
 					);
@@ -65,7 +65,7 @@ public class GilTable <T> {
 
 	private List<T> deserializeList(String[] arr) {
 		List<T> list = new ArrayList<>();
-		for(String s : arr) {
+		for (String s : arr) {
 			list.add(Serializer.deserialize(s, classOfObject));
 		}
 		return list;
@@ -77,7 +77,7 @@ public class GilTable <T> {
 			try {
 				out.write(getMessage.getBytes());
 				String receivedLine = in.readLine();
-				if(!receivedLine.startsWith("notAValidKey")) {
+				if (!receivedLine.startsWith("notAValidKey")) {
 					atValueReturned.accept(Serializer.deserialize(receivedLine, classOfObject));
 				}
 			} catch (IOException e) {

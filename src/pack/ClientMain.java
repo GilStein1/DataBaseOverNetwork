@@ -30,7 +30,7 @@ public class ClientMain {
 		Thread.sleep(1000);
 
 		table.getAllObjectsInTable(list -> {
-			for(Test s : list) {
+			for (Test s : list) {
 				System.out.println(s.getA() + ", " + s.getB());
 			}
 			System.out.println(list.size());

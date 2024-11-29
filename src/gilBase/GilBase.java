@@ -22,7 +22,7 @@ public class GilBase {
 	}
 
 	public <T> GilTable<T> getTableReference(String tableName, Class<T> classOfType) {
-		if(user == null) {
+		if (user == null) {
 			throw new NullPointerException("did not log user. all actions must be performed after connecting with user");
 		}
 		return new GilTable<>(user, tableName, in, out, classOfType);
@@ -34,8 +34,8 @@ public class GilBase {
 			socket = initializeSocket(ip, port);
 			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			out = new DataOutputStream(socket.getOutputStream());
-			boolean successfulLogin =  logUserIn(user, in, out);
-			if(successfulLogin) {
+			boolean successfulLogin = logUserIn(user, in, out);
+			if (successfulLogin) {
 				this.user = user;
 			}
 			return successfulLogin;
@@ -45,20 +45,12 @@ public class GilBase {
 	}
 
 	private boolean logUserIn(User user, BufferedReader in, DataOutputStream out) throws IOException {
-		if(in.readLine().startsWith("start connection")) {
-			System.out.println("it did try to start a connection");
+		if (in.readLine().startsWith("start connection")) {
 			out.write((Serializer.serialize(user, User.class) + "\n").getBytes());
 		}
-		else {
-			System.out.println("for some reason, it did not ask to start a connection");
-		}
 		String receivedResult = in.readLine();
-		if(receivedResult.startsWith("incorrect password")) {
-			System.out.println("the password is incorrect");
+		if (receivedResult.startsWith("incorrect password")) {
 			return false;
-		}
-		else {
-			System.out.println("the password is correct");
 		}
 		return receivedResult.startsWith("connection established");
 	}

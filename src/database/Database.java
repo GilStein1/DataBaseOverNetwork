@@ -79,7 +79,7 @@ public class Database {
 	}
 
 	public void updateValue(int key, String newValue) throws SQLException {
-		if(!isKeyInTable(key)) {
+		if (!isKeyInTable(key)) {
 			throw new RuntimeException("key " + key + " does not exist");
 		}
 		String updateCommand = "UPDATE tableOfAllValues SET value = '" + newValue + "' WHERE id = " + key;
@@ -94,16 +94,16 @@ public class Database {
 	}
 
 	private int createRandomObjectKey() throws SQLException {
-		int randomKey = (int)(Math.random() * 1000000);
-		if(isKeyInTable(randomKey)) {
+		int randomKey = (int) (Math.random() * 1000000);
+		if (isKeyInTable(randomKey)) {
 			return createRandomObjectKey();
 		}
 		return randomKey;
 	}
 
 	private int createRandomUserKey() throws SQLException {
-		int randomKey = (int)(Math.random() * 1000000);
-		if(doesUserKeyExist(randomKey)) {
+		int randomKey = (int) (Math.random() * 1000000);
+		if (doesUserKeyExist(randomKey)) {
 			return createRandomUserKey();
 		}
 		return randomKey;
