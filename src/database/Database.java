@@ -1,4 +1,4 @@
-package databaseServer;
+package database;
 
 import java.sql.*;
 import java.util.Objects;
@@ -22,8 +22,8 @@ public class Database {
 	private void createUserTableIfNotExists() throws SQLException {
 		String usersTableCreation = """
 			CREATE TABLE IF NOT EXISTS tableOfAllUsers (
-				id INTEGER PRIMARY KEY,
-				userName TEXT NOT NULL,
+				id INTEGER,
+				userName TEXT PRIMARY KEY,
 				password TEXT NOT NULL
 			)
 			""";
@@ -38,6 +38,34 @@ public class Database {
 			""";
 		Objects.requireNonNull(statement).execute(usersTableCreation);
 		Objects.requireNonNull(statement).execute(valuesTableCreation);
+	}
+
+	public User createNewUser(User user) throws SQLException {
+		int generatedKey = createRandomUserKey();
+		String insertCommand = "INSERT INTO tableOfAllUsers (id, userName, password) VALUES (" + generatedKey + ", '" + user.userName() + "', '" + user.password() + "')";
+		statement.execute(insertCommand);
+		return new User(user.userName(), user.password(), generatedKey);
+	}
+
+	public User getUser(String userName) throws SQLException {
+		String selectCommand = "SELECT id FROM tableOfAllUsers WHERE userName = " + userName;
+		ResultSet rs = statement.executeQuery(selectCommand);
+		int id = rs.getInt("id");
+		selectCommand = "SELECT password FROM tableOfAllUsers WHERE userName = " + userName;
+		String password = rs.getString("password");
+		return new User(userName, password, id);
+	}
+
+	public boolean doesUserExist(User user) throws SQLException {
+		String selectCommand = "SELECT userName FROM tableOfAllUsers WHERE userName = " + user.userName();
+		ResultSet rs = statement.executeQuery(selectCommand);
+		return rs.next();
+	}
+
+	private boolean doesUserKeyExist(int userKey) throws SQLException {
+		String selectCommand = "SELECT id FROM tableOfAllUsers WHERE id = " + userKey;
+		ResultSet rs = statement.executeQuery(selectCommand);
+		return rs.next();
 	}
 
 	public static Database getInstance() {
@@ -56,16 +84,24 @@ public class Database {
 	}
 
 	public int insertValue(User user, String table, String value) throws SQLException {
-		int generatedKey = createRandomKey();
+		int generatedKey = createRandomObjectKey();
 		String insertCommand = "INSERT INTO tableOfAllValues (id, objectValue, tableName, user_id) VALUES (" + generatedKey + ", '" + value + "', '" + table + "', " + user.id() + ")";
 		statement.execute(insertCommand);
 		return generatedKey;
 	}
 
-	private int createRandomKey() throws SQLException {
+	private int createRandomObjectKey() throws SQLException {
 		int randomKey = (int)(Math.random() * 1000000);
 		if(isKeyInTable(randomKey)) {
-			return createRandomKey();
+			return createRandomObjectKey();
+		}
+		return randomKey;
+	}
+
+	private int createRandomUserKey() throws SQLException {
+		int randomKey = (int)(Math.random() * 1000000);
+		if(doesUserKeyExist(randomKey)) {
+			return createRandomUserKey();
 		}
 		return randomKey;
 	}
@@ -76,7 +112,7 @@ public class Database {
 		return rs.getString("value");
 	}
 
-	private boolean isKeyInTable(int key) throws SQLException {
+	public boolean isKeyInTable(int key) throws SQLException {
 		String selectCommand = "SELECT id FROM tableOfAllValues WHERE id = " + key;
 		ResultSet rs = statement.executeQuery(selectCommand);
 		return rs.next();
