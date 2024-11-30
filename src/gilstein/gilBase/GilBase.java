@@ -3,6 +3,8 @@ package gilstein.gilBase;
 import gilstein.database.User;
 import gilstein.serializer.Serializer;
 import gilstein.util.DatabaseOutputStream;
+import gilstein.util.LoginResult;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -23,36 +25,36 @@ public class GilBase {
 
 	public <T> GilTable<T> getTableReference(String tableName, Class<T> classOfType) {
 		if (user == null) {
-			throw new NullPointerException("did not log user. all actions must be performed after connecting with user");
+			throw new NullPointerException("did not log user in. all actions must be performed after connecting with user");
 		}
 		return new GilTable<>(tableName, in, out, classOfType);
 	}
 
-	public boolean connectUser(User user, String ip) {
+	public LoginResult connectUser(User user, String ip) {
 		Socket socket;
 		try {
 			socket = initializeSocket(ip);
 			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			out = new DatabaseOutputStream(socket.getOutputStream());
-			boolean successfulLogin = logUserIn(user, in, out);
-			if (successfulLogin) {
+			LoginResult loginResult = logUserIn(user, in, out);
+			if (loginResult.isLoginSuccessful()) {
 				this.user = user;
 			}
-			return successfulLogin;
+			return loginResult;
 		} catch (IOException e) {
-			return false;
+			return LoginResult.ERROR_UPON_LOGIN;
 		}
 	}
 
-	private boolean logUserIn(User user, BufferedReader in, DatabaseOutputStream out) throws IOException {
+	private LoginResult logUserIn(User user, BufferedReader in, DatabaseOutputStream out) throws IOException {
 		if (in.readLine().startsWith("start connection")) {
 			out.write(Serializer.serialize(user, User.class));
 		}
 		String receivedResult = in.readLine();
 		if (receivedResult.startsWith("incorrect password")) {
-			return false;
+			return LoginResult.WRONG_PASSWORD;
 		}
-		return receivedResult.startsWith("connection established");
+		return receivedResult.startsWith("connection established")? LoginResult.SUCCESS : LoginResult.ERROR_UPON_LOGIN;
 	}
 
 	private Socket initializeSocket(String ip) {

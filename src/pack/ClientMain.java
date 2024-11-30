@@ -10,7 +10,7 @@ public class ClientMain {
 
 		GilBase gilBase = GilBase.getInstance();
 
-		boolean success = gilBase.connectUser(new User("Yuval", "Hello4321"), "localhost");
+		boolean success = gilBase.connectUser(new User("Yuval", "Hello4321"), "localhost").isLoginSuccessful();
 
 		System.out.println("login success: " + success);
 
