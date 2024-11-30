@@ -71,37 +71,53 @@ public class DatabaseManager {
 	void handleInputFromClient(BufferedReader in, DataOutputStream out, User connectedUser) throws IOException, SQLException {
 		String receivedMessage = in.readLine();
 		if (receivedMessage.startsWith("getObject")) {
-			String[] parts = receivedMessage.split(" ");
-			if (Database.getInstance().isKeyInTable(Integer.parseInt(parts[2]))) {
-				String object = Database.getInstance().getValue(connectedUser, parts[1], Integer.parseInt(parts[2]));
-				out.write((object + "\n").getBytes());
-			} else {
-				out.write("notAValidKey\n".getBytes());
-			}
+			handleGetObjectRequest(receivedMessage, out, connectedUser);
 		} else if (receivedMessage.startsWith("getAllObjects")) {
-			String[] parts = receivedMessage.split(" ");
-			List<Pair<String, Integer>> values = Database.getInstance().getAllValues(connectedUser, parts[1]);
-			if (values.isEmpty()) {
-				out.write("error\n".getBytes());
-			} else {
-				StringBuilder allValues = new StringBuilder();
-				for (Pair<String, Integer> value : values) {
-					allValues.append("*").append(value.getFirst()).append("+").append(value.getSecond());
-				}
-				String allValuesString = allValues.append("\n").substring(1);
-				out.write(allValuesString.getBytes());
-			}
+			handleGetAllObjectsRequest(receivedMessage, out, connectedUser);
 		} else if (receivedMessage.startsWith("insertObject")) {
-			String[] parts = receivedMessage.split(" ");
-			int id = Database.getInstance().insertValue(connectedUser, parts[1], parts[2]);
-			out.write((id + "\n").getBytes());
+			handleInsertObjectRequest(receivedMessage, out, connectedUser);
 		} else if (receivedMessage.startsWith("updateObject")) {
-			String[] parts = receivedMessage.split(" ");
-			int id = Integer.parseInt(parts[1]);
-			String object = parts[2];
-			Database.getInstance().updateValue(id, object);
-			out.write("success\n".getBytes());
+			handleUpdateObjectRequest(receivedMessage, out);
 		}
+	}
+
+	private void handleGetObjectRequest(String receivedMessage, DataOutputStream out, User connectedUser) throws IOException, SQLException {
+		String[] parts = receivedMessage.split(" ");
+		if (Database.getInstance().isKeyInTable(Integer.parseInt(parts[2]))) {
+			String object = Database.getInstance().getValue(connectedUser, parts[1], Integer.parseInt(parts[2]));
+			out.write((object + "\n").getBytes());
+		} else {
+			out.write("notAValidKey\n".getBytes());
+		}
+	}
+
+	private void handleGetAllObjectsRequest(String receivedMessage, DataOutputStream out, User connectedUser) throws IOException, SQLException {
+		String[] parts = receivedMessage.split(" ");
+		List<Pair<String, Integer>> values = Database.getInstance().getAllValues(connectedUser, parts[1]);
+		if (values.isEmpty()) {
+			out.write("error\n".getBytes());
+		} else {
+			StringBuilder allValues = new StringBuilder();
+			for (Pair<String, Integer> value : values) {
+				allValues.append("*").append(value.getFirst()).append("+").append(value.getSecond());
+			}
+			String allValuesString = allValues.append("\n").substring(1);
+			out.write(allValuesString.getBytes());
+		}
+	}
+
+	private void handleInsertObjectRequest(String receivedMessage, DataOutputStream out, User connectedUser) throws IOException, SQLException {
+		String[] parts = receivedMessage.split(" ");
+		int id = Database.getInstance().insertValue(connectedUser, parts[1], parts[2]);
+		out.write((id + "\n").getBytes());
+	}
+
+	private void handleUpdateObjectRequest(String receivedMessage, DataOutputStream out) throws IOException, SQLException {
+		String[] parts = receivedMessage.split(" ");
+		int id = Integer.parseInt(parts[1]);
+		String object = parts[2];
+		Database.getInstance().updateValue(id, object);
+		out.write("success\n".getBytes());
 	}
 
 	public static DatabaseManager getInstance() {
