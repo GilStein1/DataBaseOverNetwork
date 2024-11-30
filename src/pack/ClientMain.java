@@ -3,12 +3,10 @@ package pack;
 import database.User;
 import gilBase.GilBase;
 import gilBase.GilTable;
-
-import java.sql.SQLException;
-import java.util.concurrent.atomic.AtomicInteger;
+import gilsteinUtil.Pair;
 
 public class ClientMain {
-	public static void main(String[] args) throws InterruptedException {
+	public static void main(String[] args) {
 
 		GilBase gilBase = GilBase.getInstance();
 
@@ -18,20 +16,11 @@ public class ClientMain {
 
 		GilTable<Test> table = gilBase.getTableReference("gilTable", Test.class);
 
-		AtomicInteger ID = new AtomicInteger();
-
-		table.insertObject(new Test(10, 30), (id) -> {
-			System.out.println(id);
-			ID.set(id);
-			table.getObject(id, value -> {
-			});
-		});
-
-		Thread.sleep(1000);
+		table.insertObject(new Test(10, 30), System.out::println);
 
 		table.getAllObjectsInTable(list -> {
-			for (Test s : list) {
-				System.out.println(s.getA() + ", " + s.getB());
+			for (Pair<Test, Integer> s : list) {
+				System.out.println(s.getFirst().getA() + ", " + s.getFirst().getB() + " -> " + s.getSecond());
 			}
 			System.out.println(list.size());
 		});

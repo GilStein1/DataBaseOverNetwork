@@ -1,5 +1,7 @@
 package database;
 
+import gilsteinUtil.Pair;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -115,12 +117,12 @@ public class Database {
 		return rs.getString("objectValue");
 	}
 
-	public List<String> getAllValues(User user, String table) throws SQLException {
-		String selectCommand = "SELECT objectValue FROM tableOfAllValues WHERE tableName = '" + table + "' AND user_id = " + user.id();
+	public List<Pair<String, Integer>> getAllValues(User user, String table) throws SQLException {
+		String selectCommand = "SELECT objectValue, id FROM tableOfAllValues WHERE tableName = '" + table + "' AND user_id = " + user.id();
 		ResultSet rs = statement.executeQuery(selectCommand);
-		List<String> values = new ArrayList<>();
+		List<Pair<String, Integer>> values = new ArrayList<>();
 		while (rs.next()) {
-			values.add(rs.getString("objectValue"));
+			values.add(new Pair<>(rs.getString("objectValue"), rs.getInt("id")));
 		}
 		return values;
 	}

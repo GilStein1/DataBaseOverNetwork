@@ -1,6 +1,7 @@
 package gilBase;
 
 import database.User;
+import gilsteinUtil.Pair;
 import serializer.Serializer;
 
 import java.io.BufferedReader;
@@ -45,16 +46,23 @@ public class GilTable<T> {
 		waitForValue.start();
 	}
 
-	public void getAllObjectsInTable(Consumer<List<T>> atValueReturned) {
+	public void getAllObjectsInTable(Consumer<List<Pair<T, Integer>>> atValueReturned) {
 		Thread waitForValue = new Thread(() -> {
 			String getMessage = "getAllObjects " + tableName + "\n";
 			try {
 				out.write(getMessage.getBytes());
 				String receivedLine = in.readLine();
 				if (!receivedLine.startsWith("error")) {
-					atValueReturned.accept(
-						deserializeList(receivedLine.split("\\*"))
-					);
+					String[] parts = receivedLine.split("\\*");
+					List<Pair<T, Integer>> objects = new ArrayList<>();
+					for(String part : parts) {
+						String[] valueAndId = part.split("\\+");
+						objects.add(new Pair<>(Serializer.deserialize(valueAndId[0], classOfObject), Integer.parseInt(valueAndId[1])));
+					}
+					atValueReturned.accept(objects);
+//					atValueReturned.accept(
+//						deserializeList(receivedLine.split("\\*"))
+//					);
 				}
 			} catch (IOException e) {
 				throw new RuntimeException(e);

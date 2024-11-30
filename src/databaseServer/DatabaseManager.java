@@ -2,6 +2,7 @@ package databaseServer;
 
 import database.Database;
 import database.User;
+import gilsteinUtil.Pair;
 import serializer.Serializer;
 
 import java.io.BufferedReader;
@@ -104,13 +105,13 @@ public class DatabaseManager {
 			}
 		} else if (receivedMessage.startsWith("getAllObjects")) {
 			String[] parts = receivedMessage.split(" ");
-			List<String> values = Database.getInstance().getAllValues(connectedUser, parts[1]);
+			List<Pair<String, Integer>> values = Database.getInstance().getAllValues(connectedUser, parts[1]);
 			if (values.isEmpty()) {
 				out.write("error\n".getBytes());
 			} else {
 				StringBuilder allValues = new StringBuilder();
-				for (String value : values) {
-					allValues.append("*").append(value);
+				for (Pair<String, Integer> value : values) {
+					allValues.append("*").append(value.getFirst()).append("+").append(value.getSecond());
 				}
 				String allValuesString = allValues.append("\n").substring(1);
 				out.write(allValuesString.getBytes());
