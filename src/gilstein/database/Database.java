@@ -1,6 +1,7 @@
 package gilstein.database;
 
 import gilstein.util.Pair;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,13 +17,20 @@ public class Database {
 		try {
 			Connection connection = DriverManager.getConnection("jdbc:sqlite:" + databaseFile);
 			this.statement = connection.createStatement();
-			createUserTableIfNotExists();
+			createTablesIfDontExist();
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	private void createUserTableIfNotExists() throws SQLException {
+	public static Database getInstance() {
+		if (instance == null) {
+			instance = new Database();
+		}
+		return instance;
+	}
+
+	private void createTablesIfDontExist() throws SQLException {
 		String usersTableCreation = """
 			CREATE TABLE IF NOT EXISTS tableOfAllUsers (
 				id INTEGER,
@@ -62,21 +70,12 @@ public class Database {
 
 	public boolean doesUserExist(User user) throws SQLException {
 		String selectCommand = "SELECT userName FROM tableOfAllUsers WHERE userName = '" + user.userName() + "'";
-		ResultSet rs = statement.executeQuery(selectCommand);
-		return rs.next();
+		return statement.executeQuery(selectCommand).next();
 	}
 
 	private boolean doesUserKeyExist(int userKey) throws SQLException {
 		String selectCommand = "SELECT id FROM tableOfAllUsers WHERE id = " + userKey;
-		ResultSet rs = statement.executeQuery(selectCommand);
-		return rs.next();
-	}
-
-	public static Database getInstance() {
-		if (instance == null) {
-			instance = new Database();
-		}
-		return instance;
+		return statement.executeQuery(selectCommand).next();
 	}
 
 	public void updateValue(int key, String newValue) throws SQLException {
@@ -95,7 +94,7 @@ public class Database {
 	}
 
 	private int createRandomObjectKey() throws SQLException {
-		int randomKey = (int) (Math.random() * 1000000);
+		int randomKey = (int) (Math.random() * 1000000000);
 		if (isKeyInTable(randomKey)) {
 			return createRandomObjectKey();
 		}
@@ -103,7 +102,7 @@ public class Database {
 	}
 
 	private int createRandomUserKey() throws SQLException {
-		int randomKey = (int) (Math.random() * 1000000);
+		int randomKey = (int) (Math.random() * 1000000000);
 		if (doesUserKeyExist(randomKey)) {
 			return createRandomUserKey();
 		}
@@ -112,8 +111,7 @@ public class Database {
 
 	public String getValue(User user, String table, int key) throws SQLException {
 		String selectCommand = "SELECT objectValue FROM tableOfAllValues WHERE id = " + key + " AND tableName = '" + table + "' AND user_id = " + user.id();
-		ResultSet rs = statement.executeQuery(selectCommand);
-		return rs.getString("objectValue");
+		return statement.executeQuery(selectCommand).getString("objectValue");
 	}
 
 	public List<Pair<String, Integer>> getAllValues(User user, String table) throws SQLException {
@@ -128,8 +126,7 @@ public class Database {
 
 	public boolean isKeyInTable(int key) throws SQLException {
 		String selectCommand = "SELECT id FROM tableOfAllValues WHERE id = " + key;
-		ResultSet rs = statement.executeQuery(selectCommand);
-		return rs.next();
+		return statement.executeQuery(selectCommand).next();
 	}
 
 }

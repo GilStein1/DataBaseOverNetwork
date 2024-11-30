@@ -6,6 +6,7 @@ import gilstein.util.DatabaseOutputStream;
 import gilstein.util.Pair;
 import gilstein.serializer.Serializer;
 import gilstein.util.Result;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -13,6 +14,8 @@ import java.net.Socket;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+
 import static gilstein.util.Constants.DEFAULT_PORT;
 
 public class DatabaseManager {
@@ -52,33 +55,45 @@ public class DatabaseManager {
 		out.write(startMessage);
 		String receivedMessage = in.readLine();
 		User user = Serializer.deserialize(receivedMessage, User.class);
+		AtomicReference<String> messageToSend = new AtomicReference<>("");
+		Optional<User> userToReturn = handleUserVerification(messageToSend, user);
+		out.write(messageToSend.get());
+		return userToReturn;
+	}
+
+	private Optional<User> handleUserVerification(AtomicReference<String> messageToSend, User user) throws SQLException {
+		Optional<User> userToReturn;
 		if (!Database.getInstance().doesUserExist(user)) {
 			user = Database.getInstance().createNewUser(user);
+			messageToSend.set("connection established");
+			userToReturn = Optional.of(user);
 		} else {
-			User listedUser = Database.getInstance().getUser(user.userName());
-			if (listedUser.password().equals(user.password())) {
-				user = listedUser;
-			} else {
-				String wrongPasswordMessage = "incorrect password";
-				out.write(wrongPasswordMessage);
-				return Optional.empty();
-			}
+			Optional<User> passwordVerifiedUser = checkUserPassword(user);
+			passwordVerifiedUser.ifPresentOrElse(
+				userWithCorrectPassword -> messageToSend.set("connection established"),
+				() -> messageToSend.set("incorrect password")
+			);
+			userToReturn = passwordVerifiedUser;
 		}
-		String connectionEstablishedMessage = "connection established";
-		out.write(connectionEstablishedMessage);
-		return Optional.of(user);
+		return userToReturn;
+	}
+
+	private Optional<User> checkUserPassword(User user) throws SQLException {
+		User listedUser = Database.getInstance().getUser(user.userName());
+		if (listedUser.password().equals(user.password())) {
+			return Optional.of(listedUser);
+		} else {
+			return Optional.empty();
+		}
 	}
 
 	void handleInputFromClient(BufferedReader in, DatabaseOutputStream out, User connectedUser) throws IOException, SQLException {
 		String receivedMessage = in.readLine();
-		if (receivedMessage.startsWith("getObject")) {
-			handleGetObjectRequest(receivedMessage, out, connectedUser);
-		} else if (receivedMessage.startsWith("getAllObjects")) {
-			handleGetAllObjectsRequest(receivedMessage, out, connectedUser);
-		} else if (receivedMessage.startsWith("insertObject")) {
-			handleInsertObjectRequest(receivedMessage, out, connectedUser);
-		} else if (receivedMessage.startsWith("updateObject")) {
-			handleUpdateObjectRequest(receivedMessage, out);
+		switch (receivedMessage.split(" ")[0]) {
+			case "getObject" -> handleGetObjectRequest(receivedMessage, out, connectedUser);
+			case "getAllObjects" -> handleGetAllObjectsRequest(receivedMessage, out, connectedUser);
+			case "insertObject" -> handleInsertObjectRequest(receivedMessage, out, connectedUser);
+			case "updateObject" -> handleUpdateObjectRequest(receivedMessage, out);
 		}
 	}
 

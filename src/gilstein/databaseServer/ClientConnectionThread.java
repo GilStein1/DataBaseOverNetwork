@@ -39,13 +39,14 @@ public class ClientConnectionThread {
 		try {
 			Optional<User> user = databaseManager.authenticateNewUser(in, out);
 			user.ifPresent(connectedUser -> this.connectedUser = connectedUser);
-			if(user.isEmpty()) {
+			if (user.isEmpty()) {
 				clientSocket.close();
+			} else {
+				startConnectionLoop();
 			}
 		} catch (IOException | SQLException e) {
 			throw new RuntimeException(e);
 		}
-		startConnectionLoop();
 	}
 
 
