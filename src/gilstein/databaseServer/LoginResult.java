@@ -1,10 +1,11 @@
-package gilstein.util;
+package gilstein.databaseServer;
 
 public enum LoginResult {
 
 	SUCCESS(true),
 	WRONG_PASSWORD(true),
-	ERROR_UPON_LOGIN(true);
+	ERROR_UPON_LOGIN(true),
+	SERVER_IS_OFFLINE(false);
 
 	private final boolean loginSuccess;
 

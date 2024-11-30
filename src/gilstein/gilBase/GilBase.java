@@ -3,13 +3,11 @@ package gilstein.gilBase;
 import gilstein.database.User;
 import gilstein.serializer.Serializer;
 import gilstein.util.DatabaseOutputStream;
-import gilstein.util.LoginResult;
-
+import gilstein.databaseServer.LoginResult;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
-
 import static gilstein.util.Constants.DEFAULT_PORT;
 
 public class GilBase {
@@ -43,6 +41,8 @@ public class GilBase {
 			return loginResult;
 		} catch (IOException e) {
 			return LoginResult.ERROR_UPON_LOGIN;
+		} catch (ServerIsOfflineException e) {
+			return LoginResult.SERVER_IS_OFFLINE;
 		}
 	}
 
@@ -62,7 +62,7 @@ public class GilBase {
 		try {
 			socket = new Socket(ip, DEFAULT_PORT);
 		} catch (IOException e) {
-			throw new RuntimeException("Could not connect to the server");
+			throw new ServerIsOfflineException("Server is offline");
 		}
 		return socket;
 	}

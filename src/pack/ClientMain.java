@@ -16,9 +16,7 @@ public class ClientMain {
 
 		GilTable<Test> table = gilBase.getTableReference("yuval", Test.class);
 
-		table.insertObject(new Test(10400, 5, "ani lo yuval"), (id) -> {
-			System.out.println("the id of the object is: " + id);
-		});
+		table.insertObject(new Test(10400, 5, "ani lo yuval"), id -> System.out.println("the id of the object is: " + id));
 
 		table.getAllObjectsInTable(list -> {
 			for (Pair<Test, Integer> s : list) {
