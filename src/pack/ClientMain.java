@@ -10,13 +10,13 @@ public class ClientMain {
 
 		GilBase gilBase = GilBase.getInstance();
 
-		boolean success = gilBase.connectUser(new User("Gil", "Hello1234"), "localhost");
+		boolean success = gilBase.connectUser(new User("Yuval", "Hello4321"), "localhost");
 
 		System.out.println("login success: " + success);
 
 		GilTable<Test> table = gilBase.getTableReference("yuval", Test.class);
 
-		table.insertObject(new Test(10400, 5, "ani yuval"), (id) -> {
+		table.insertObject(new Test(10400, 5, "ani lo yuval"), (id) -> {
 			System.out.println("the id of the object is: " + id);
 		});
 

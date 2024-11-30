@@ -2,10 +2,11 @@ package gilstein.databaseServer;
 
 import gilstein.database.Database;
 import gilstein.database.User;
+import gilstein.util.DatabaseOutputStream;
 import gilstein.util.Pair;
 import gilstein.serializer.Serializer;
+import gilstein.util.Result;
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -46,9 +47,9 @@ public class DatabaseManager {
 		clientConnectionThread.start();
 	}
 
-	Optional<User> authenticateNewUser(BufferedReader in, DataOutputStream out) throws IOException, SQLException {
-		String startMessage = "start connection\n";
-		out.write(startMessage.getBytes());
+	Optional<User> authenticateNewUser(BufferedReader in, DatabaseOutputStream out) throws IOException, SQLException {
+		String startMessage = "start connection";
+		out.write(startMessage);
 		String receivedMessage = in.readLine();
 		User user = Serializer.deserialize(receivedMessage, User.class);
 		if (!Database.getInstance().doesUserExist(user)) {
@@ -58,17 +59,17 @@ public class DatabaseManager {
 			if (listedUser.password().equals(user.password())) {
 				user = listedUser;
 			} else {
-				String wrongPasswordMessage = "incorrect password\n";
-				out.write(wrongPasswordMessage.getBytes());
+				String wrongPasswordMessage = "incorrect password";
+				out.write(wrongPasswordMessage);
 				return Optional.empty();
 			}
 		}
-		String connectionEstablishedMessage = "connection established\n";
-		out.write(connectionEstablishedMessage.getBytes());
+		String connectionEstablishedMessage = "connection established";
+		out.write(connectionEstablishedMessage);
 		return Optional.of(user);
 	}
 
-	void handleInputFromClient(BufferedReader in, DataOutputStream out, User connectedUser) throws IOException, SQLException {
+	void handleInputFromClient(BufferedReader in, DatabaseOutputStream out, User connectedUser) throws IOException, SQLException {
 		String receivedMessage = in.readLine();
 		if (receivedMessage.startsWith("getObject")) {
 			handleGetObjectRequest(receivedMessage, out, connectedUser);
@@ -81,43 +82,43 @@ public class DatabaseManager {
 		}
 	}
 
-	private void handleGetObjectRequest(String receivedMessage, DataOutputStream out, User connectedUser) throws IOException, SQLException {
+	private void handleGetObjectRequest(String receivedMessage, DatabaseOutputStream out, User connectedUser) throws IOException, SQLException {
 		String[] parts = receivedMessage.split(" ");
 		if (Database.getInstance().isKeyInTable(Integer.parseInt(parts[2]))) {
 			String object = Database.getInstance().getValue(connectedUser, parts[1], Integer.parseInt(parts[2]));
-			out.write((object + "\n").getBytes());
+			out.write(object);
 		} else {
-			out.write("notAValidKey\n".getBytes());
+			out.sendResultMessage(Result.NOT_A_VALID_KEY);
 		}
 	}
 
-	private void handleGetAllObjectsRequest(String receivedMessage, DataOutputStream out, User connectedUser) throws IOException, SQLException {
+	private void handleGetAllObjectsRequest(String receivedMessage, DatabaseOutputStream out, User connectedUser) throws IOException, SQLException {
 		String[] parts = receivedMessage.split(" ");
 		List<Pair<String, Integer>> values = Database.getInstance().getAllValues(connectedUser, parts[1]);
 		if (values.isEmpty()) {
-			out.write("error\n".getBytes());
+			out.sendResultMessage(Result.ERROR);
 		} else {
 			StringBuilder allValues = new StringBuilder();
 			for (Pair<String, Integer> value : values) {
 				allValues.append("*").append(value.getFirst()).append("+").append(value.getSecond());
 			}
-			String allValuesString = allValues.append("\n").substring(1);
-			out.write(allValuesString.getBytes());
+			String allValuesString = allValues.substring(1);
+			out.write(allValuesString);
 		}
 	}
 
-	private void handleInsertObjectRequest(String receivedMessage, DataOutputStream out, User connectedUser) throws IOException, SQLException {
+	private void handleInsertObjectRequest(String receivedMessage, DatabaseOutputStream out, User connectedUser) throws IOException, SQLException {
 		String[] parts = receivedMessage.split(" ");
 		int id = Database.getInstance().insertValue(connectedUser, parts[1], parts[2]);
-		out.write((id + "\n").getBytes());
+		out.write(String.valueOf(id));
 	}
 
-	private void handleUpdateObjectRequest(String receivedMessage, DataOutputStream out) throws IOException, SQLException {
+	private void handleUpdateObjectRequest(String receivedMessage, DatabaseOutputStream out) throws IOException, SQLException {
 		String[] parts = receivedMessage.split(" ");
 		int id = Integer.parseInt(parts[1]);
 		String object = parts[2];
 		Database.getInstance().updateValue(id, object);
-		out.write("success\n".getBytes());
+		out.sendResultMessage(Result.SUCCESS);
 	}
 
 	public static DatabaseManager getInstance() {

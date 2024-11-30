@@ -1,9 +1,9 @@
 package gilstein.databaseServer;
 
 import gilstein.database.User;
+import gilstein.util.DatabaseOutputStream;
 
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
@@ -16,7 +16,7 @@ public class ClientConnectionThread {
 	private final Socket clientSocket;
 	private final DatabaseManager databaseManager;
 	private final BufferedReader in;
-	private final DataOutputStream out;
+	private final DatabaseOutputStream out;
 	private User connectedUser;
 
 	ClientConnectionThread(Socket clientSocket) {
@@ -25,7 +25,7 @@ public class ClientConnectionThread {
 		this.databaseManager = DatabaseManager.getInstance();
 		try {
 			in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-			out = new DataOutputStream(clientSocket.getOutputStream());
+			out = new DatabaseOutputStream(clientSocket.getOutputStream());
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

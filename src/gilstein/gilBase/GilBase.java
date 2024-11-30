@@ -2,9 +2,8 @@ package gilstein.gilBase;
 
 import gilstein.database.User;
 import gilstein.serializer.Serializer;
-
+import gilstein.util.DatabaseOutputStream;
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
@@ -14,9 +13,8 @@ import static gilstein.util.Constants.DEFAULT_PORT;
 public class GilBase {
 
 	private static GilBase instance;
-	private Socket socket;
 	private BufferedReader in;
-	private DataOutputStream out;
+	private DatabaseOutputStream out;
 	private User user;
 
 	private GilBase() {
@@ -27,15 +25,15 @@ public class GilBase {
 		if (user == null) {
 			throw new NullPointerException("did not log user. all actions must be performed after connecting with user");
 		}
-		return new GilTable<>(user, tableName, in, out, classOfType);
+		return new GilTable<>(tableName, in, out, classOfType);
 	}
 
 	public boolean connectUser(User user, String ip) {
-		socket = null;
+		Socket socket;
 		try {
-			socket = initializeSocket(ip, DEFAULT_PORT);
+			socket = initializeSocket(ip);
 			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			out = new DataOutputStream(socket.getOutputStream());
+			out = new DatabaseOutputStream(socket.getOutputStream());
 			boolean successfulLogin = logUserIn(user, in, out);
 			if (successfulLogin) {
 				this.user = user;
@@ -46,9 +44,9 @@ public class GilBase {
 		}
 	}
 
-	private boolean logUserIn(User user, BufferedReader in, DataOutputStream out) throws IOException {
+	private boolean logUserIn(User user, BufferedReader in, DatabaseOutputStream out) throws IOException {
 		if (in.readLine().startsWith("start connection")) {
-			out.write((Serializer.serialize(user, User.class) + "\n").getBytes());
+			out.write(Serializer.serialize(user, User.class));
 		}
 		String receivedResult = in.readLine();
 		if (receivedResult.startsWith("incorrect password")) {
@@ -57,10 +55,10 @@ public class GilBase {
 		return receivedResult.startsWith("connection established");
 	}
 
-	private Socket initializeSocket(String ip, int port) {
+	private Socket initializeSocket(String ip) {
 		Socket socket;
 		try {
-			socket = new Socket(ip, port);
+			socket = new Socket(ip, DEFAULT_PORT);
 		} catch (IOException e) {
 			throw new RuntimeException("Could not connect to the server");
 		}
