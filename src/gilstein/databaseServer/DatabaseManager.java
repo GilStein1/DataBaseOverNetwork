@@ -1,18 +1,18 @@
-package databaseServer;
+package gilstein.databaseServer;
 
-import database.Database;
-import database.User;
-import gilsteinUtil.Pair;
-import serializer.Serializer;
-
+import gilstein.database.Database;
+import gilstein.database.User;
+import gilstein.util.Pair;
+import gilstein.serializer.Serializer;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
+import static gilstein.util.Constants.DEFAULT_PORT;
 
 public class DatabaseManager {
 
@@ -20,13 +20,13 @@ public class DatabaseManager {
 	private ServerSocket serverSocket;
 
 	private DatabaseManager() {
-		startWaitingForClients(4590);
+		startWaitingForClients();
 	}
 
-	private void startWaitingForClients(int port) {
+	private void startWaitingForClients() {
 		Thread waitForClients = new Thread(() -> {
 			try {
-				serverSocket = new ServerSocket(port);
+				serverSocket = new ServerSocket(DEFAULT_PORT);
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
@@ -42,36 +42,11 @@ public class DatabaseManager {
 	}
 
 	private void connectToNewClient(Socket clientSocket) {
-		Thread clientThread = new Thread(() -> {
-			BufferedReader in;
-			DataOutputStream out;
-			User connectedUser;
-			try {
-				in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-				out = new DataOutputStream(clientSocket.getOutputStream());
-				connectedUser = authenticateNewUser(in, out);
-				if (connectedUser == null) {
-					clientSocket.close();
-				}
-			} catch (IOException | SQLException e) {
-				throw new RuntimeException(e);
-			}
-			boolean isConnected = true;
-			while (!clientSocket.isClosed() && isConnected) {
-				try {
-					handleInputFromClient(in, out, connectedUser);
-				} catch (IOException | SQLException ignored) {
-				}
-			}
-			try {
-				clientSocket.close();
-			} catch (IOException ignored) {
-			}
-		});
-		clientThread.start();
+		ClientConnectionThread clientConnectionThread = new ClientConnectionThread(clientSocket);
+		clientConnectionThread.start();
 	}
 
-	private User authenticateNewUser(BufferedReader in, DataOutputStream out) throws IOException, SQLException {
+	Optional<User> authenticateNewUser(BufferedReader in, DataOutputStream out) throws IOException, SQLException {
 		String startMessage = "start connection\n";
 		out.write(startMessage.getBytes());
 		String receivedMessage = in.readLine();
@@ -85,15 +60,15 @@ public class DatabaseManager {
 			} else {
 				String wrongPasswordMessage = "incorrect password\n";
 				out.write(wrongPasswordMessage.getBytes());
-				return null;
+				return Optional.empty();
 			}
 		}
 		String connectionEstablishedMessage = "connection established\n";
 		out.write(connectionEstablishedMessage.getBytes());
-		return user;
+		return Optional.of(user);
 	}
 
-	private void handleInputFromClient(BufferedReader in, DataOutputStream out, User connectedUser) throws IOException, SQLException {
+	void handleInputFromClient(BufferedReader in, DataOutputStream out, User connectedUser) throws IOException, SQLException {
 		String receivedMessage = in.readLine();
 		if (receivedMessage.startsWith("getObject")) {
 			String[] parts = receivedMessage.split(" ");

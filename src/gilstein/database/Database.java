@@ -1,6 +1,6 @@
-package database;
+package gilstein.database;
 
-import gilsteinUtil.Pair;
+import gilstein.util.Pair;
 
 import java.sql.*;
 import java.util.ArrayList;

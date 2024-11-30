@@ -1,6 +1,6 @@
 package pack;
 
-import databaseServer.DatabaseManager;
+import gilstein.databaseServer.DatabaseManager;
 
 public class ServerMain {
 	public static void main(String[] args) {

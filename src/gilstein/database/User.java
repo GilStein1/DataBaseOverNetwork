@@ -1,4 +1,4 @@
-package database;
+package gilstein.database;
 
 public class User {
 

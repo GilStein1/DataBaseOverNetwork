@@ -1,4 +1,4 @@
-package serializer;
+package gilstein.serializer;
 
 public class StringUtils {
 

@@ -1,4 +1,4 @@
-package gilsteinUtil;
+package gilstein.util;
 
 public class Pair<R, C> {
 

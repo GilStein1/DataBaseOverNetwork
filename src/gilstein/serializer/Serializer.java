@@ -1,4 +1,4 @@
-package serializer;
+package gilstein.serializer;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static serializer.StringUtils.*;
+import static gilstein.serializer.StringUtils.*;
 
 public class Serializer {
 

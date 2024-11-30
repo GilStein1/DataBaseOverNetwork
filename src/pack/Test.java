@@ -3,13 +3,23 @@ package pack;
 public class Test {
 
 	private int a, b;
+	private String c = "";
 
-	public Test(int a, int b) {
+	public Test(int a, int b, String c) {
 		this.a = a;
 		this.b = b;
+		this.c = c;
 	}
 
 	public Test() {
+	}
+
+	public String getC() {
+		return c;
+	}
+
+	public void setC(String c) {
+		this.c = c;
 	}
 
 	public int getA() {
