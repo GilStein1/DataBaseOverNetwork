@@ -1,6 +1,7 @@
 package gilstein.database;
 
 import gilstein.util.Pair;
+import gilstein.util.User;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -82,7 +83,7 @@ public class Database {
 		if (!isKeyInTable(key)) {
 			throw new RuntimeException("key " + key + " does not exist");
 		}
-		String updateCommand = "UPDATE tableOfAllValues SET value = '" + newValue + "' WHERE id = " + key;
+		String updateCommand = "UPDATE tableOfAllValues SET objectValue = '" + newValue + "' WHERE id = " + key;
 		statement.execute(updateCommand);
 	}
 

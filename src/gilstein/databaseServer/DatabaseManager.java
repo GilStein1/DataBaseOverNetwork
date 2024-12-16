@@ -1,7 +1,7 @@
 package gilstein.databaseServer;
 
 import gilstein.database.Database;
-import gilstein.database.User;
+import gilstein.util.User;
 import gilstein.util.DatabaseOutputStream;
 import gilstein.util.Pair;
 import gilstein.serializer.Serializer;
@@ -129,11 +129,13 @@ public class DatabaseManager {
 	}
 
 	private void handleUpdateObjectRequest(String receivedMessage, DatabaseOutputStream out) throws IOException, SQLException {
+		System.out.println("updating object");
 		String[] parts = receivedMessage.split(" ");
 		int id = Integer.parseInt(parts[1]);
 		String object = parts[2];
 		Database.getInstance().updateValue(id, object);
 		out.sendResultMessage(Result.SUCCESS);
+		System.out.println("sent success on update");
 	}
 
 	public static DatabaseManager getInstance() {

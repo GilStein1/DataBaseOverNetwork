@@ -1,6 +1,6 @@
 package pack;
 
-import gilstein.database.User;
+import gilstein.util.User;
 import gilstein.gilBase.GilBase;
 import gilstein.gilBase.GilTable;
 import gilstein.util.Pair;
@@ -8,22 +8,36 @@ import gilstein.util.Pair;
 public class ClientMain {
 	public static void main(String[] args) {
 
+		User user = new User("newUser", "secret password");
+
 		GilBase gilBase = GilBase.getInstance();
 
-		boolean success = gilBase.connectUser(new User("Yuval", "Hello4321"), "localhost").isLoginSuccessful();
+		gilBase.connectUser(user, "localhost");
 
-		System.out.println("login success: " + success);
+		GilTable<Test> testTable = gilBase.getTableReference("testTable", Test.class);
 
-		GilTable<Test> table = gilBase.getTableReference("yuval", Test.class);
+		Test t = new Test(7654, 235, "gdhfjsdhjk");
 
-		table.insertObject(new Test(10400, 5, "ani lo yuval"), id -> System.out.println("the id of the object is: " + id));
-
-		table.getAllObjectsInTable(list -> {
-			for (Pair<Test, Integer> s : list) {
-				System.out.println(s.getFirst().getA() + ", " + s.getFirst().getB() + ", " + s.getFirst().getC() + " -> " + s.getSecond());
-			}
-			System.out.println(list.size());
+		testTable.insertObject(t ,(id) -> {
+//			System.out.println("inserted the object with id " + id);
 		});
+
+		testTable.updateObject(507373861, new Test(0, 0, "no"), () -> {
+			System.out.println("update");
+//			testTable.getAllObjectsInTable(list -> {
+//				for(Pair<Test, Integer> pair : list) {
+//					System.out.println(pair.getFirst().getC() + ", the id is " + pair.getSecond());
+//				}
+//			});
+		});
+
+		System.out.println("getting all objects");
+
+//		testTable.getAllObjectsInTable(list -> {
+//			for(Pair<Test, Integer> pair : list) {
+//				System.out.println(pair.getFirst().getC() + ", the id is " + pair.getSecond());
+//			}
+//		});
 
 	}
 }

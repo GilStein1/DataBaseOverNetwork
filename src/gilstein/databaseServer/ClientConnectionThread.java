@@ -1,6 +1,6 @@
 package gilstein.databaseServer;
 
-import gilstein.database.User;
+import gilstein.util.User;
 import gilstein.util.DatabaseOutputStream;
 
 import java.io.BufferedReader;

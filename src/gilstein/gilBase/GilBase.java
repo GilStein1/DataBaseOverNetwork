@@ -1,6 +1,6 @@
 package gilstein.gilBase;
 
-import gilstein.database.User;
+import gilstein.util.User;
 import gilstein.serializer.Serializer;
 import gilstein.util.DatabaseOutputStream;
 import gilstein.databaseServer.LoginResult;

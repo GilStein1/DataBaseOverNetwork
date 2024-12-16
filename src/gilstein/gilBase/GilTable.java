@@ -23,6 +23,20 @@ public class GilTable<T> {
 		this.classOfObject = classOfObject;
 	}
 
+	public void insertObject(T object) {
+		String serializedObject = Serializer.serialize(object, object.getClass());
+		Thread waitForValue = new Thread(() -> {
+			String getMessage = "insertObject " + tableName + " " + serializedObject;
+			try {
+				out.write(getMessage);
+				String receivedLine = in.readLine();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		});
+		waitForValue.start();
+	}
+
 	public void insertObject(T object, Consumer<Integer> onInsert) {
 		String serializedObject = Serializer.serialize(object, object.getClass());
 		Thread waitForValue = new Thread(() -> {
@@ -31,6 +45,23 @@ public class GilTable<T> {
 				out.write(getMessage);
 				String receivedLine = in.readLine();
 				onInsert.accept(Integer.parseInt(receivedLine));
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		});
+		waitForValue.start();
+	}
+
+	public void updateObject(int id, T object, Runnable onUpdate) {
+		String serializedObject = Serializer.serialize(object, object.getClass());
+		Thread waitForValue = new Thread(() -> {
+			String updateMessage = "updateObject " + id + " " + serializedObject;
+			try {
+				out.write(updateMessage);
+				System.out.println("waiting for input");
+				String receivedLine = in.readLine();
+				System.out.println("got input");
+				onUpdate.run();
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
